@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class SpellEnemy : PrototypeEnemy
 {
@@ -9,6 +10,16 @@ public class SpellEnemy : PrototypeEnemy
     public GameObject spell;
 
     public float rangedAttackRange;
+
+    Vector3 startPos;
+    float v;
+    bool setup, justAttacked;
+
+    protected new void Start()
+    {
+        base.Start();
+        startPos = transform.position;
+    }
 
     public void castSpell()
     {
@@ -23,7 +34,20 @@ public class SpellEnemy : PrototypeEnemy
 
     public void Recalculate()
     {
-        mageAnimator.SetBool("casting", true);
+        if (currentHealth > 0)
+        {
+            justAttacked = true;
+            agent.isStopped = false;
+
+            Vector3 finalPos = findNavPosition(Random.Range(5, 10));
+
+            if (finalPos == Vector3.zero)
+                finalPos = transform.position;
+
+            agent.destination = finalPos;
+
+            currentState = enemyState.moving;
+        }
     }
 
     private void resetAnimator()
@@ -40,25 +64,38 @@ public class SpellEnemy : PrototypeEnemy
         currentState = enemyState.moving;
     }
 
-    private void Update()
+    protected new void Update()
     {
+        base.Update();
 
         float distFromPlayer = Vector3.Distance(transform.position, playerObject.transform.position);
 
-        if(currentState == enemyState.idle && distFromPlayer < visionRadius)
+        setup = mageAnimator.GetCurrentAnimatorStateInfo(0).IsName("Staff_Cast") && currentHealth > 0;
+
+        if (currentState == enemyState.idle && distFromPlayer < visionRadius)
         {
             mageAnimator.SetBool("inCombat", true);
         }
 
-        if(currentState == enemyState.moving && distFromPlayer < rangedAttackRange)
+        if (currentState == enemyState.moving && distFromPlayer < rangedAttackRange & !justAttacked)
         {
             currentState = enemyState.attacking;
             mageAnimator.SetBool("casting", true);
         }
 
-        if(agent.isActiveAndEnabled)
+        if (agent.isActiveAndEnabled)
         {
-            if(currentState == enemyState.moving && distFromPlayer < visionRadius)
+            if (currentState == enemyState.moving && justAttacked)
+            {
+                if (agent.remainingDistance < 1)
+                {
+                    currentState = enemyState.attacking;
+                    mageAnimator.SetBool("casting", true);
+                    justAttacked = false;
+                }
+            }
+
+            if (currentState == enemyState.moving && distFromPlayer < visionRadius & !justAttacked)
             {
                 agent.isStopped = false;
                 agent.destination = playerObject.transform.position;
@@ -67,8 +104,14 @@ public class SpellEnemy : PrototypeEnemy
             if (currentState == enemyState.attacking & !agent.isStopped)
             {
                 agent.velocity = Vector3.zero;
-                agent.isStopped = true;                
+                agent.isStopped = true;
             }
+        }
+
+        if (setup)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(playerObject.transform.position - transform.position);
+            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation.eulerAngles.y, ref v, 0.1f), 0);
         }
     }
 

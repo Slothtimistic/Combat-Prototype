@@ -5,6 +5,11 @@ using UnityEngine;
 public class Sword : MonoBehaviour
 {
 
+    void startWhirlwind()
+    {
+        Trainee.thisTrainee.swordAnimator.SetBool("whirlwind", false);
+    }
+
     public void attackEnd()
     {
         Trainee.thisTrainee.attackEnd();

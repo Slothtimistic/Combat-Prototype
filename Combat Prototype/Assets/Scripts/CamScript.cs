@@ -10,7 +10,7 @@ public class CamScript : MonoBehaviour
     Vector3 playerPos, v;
     float mousePosX, mousePosY;
 
-    private void Awake()
+    private void Start()
     {
         player = Player.thisPlayer.transform;    
     }

@@ -8,10 +8,13 @@ public class Trainee : Player
     public static Trainee thisTrainee;
 
     public Animator swordAnimator;
-    public BoxCollider damageCollider, blockCollider;
+    public BoxCollider damageCollider, blockCollider, whirlwindCollider;
 
     public bool breakAttack;
-    private bool queuedAttack, attackAnimations, walkAnimation, idleAnimation;
+
+    [SerializeField]
+    private float whirlwindCost;
+    private bool queuedAttack, attackAnimations, blockAnimation, walkAnimation, idleAnimation, whirlwindAnimation;
 
     protected new void Awake()
     {
@@ -52,6 +55,17 @@ public class Trainee : Player
 
     }
 
+    IEnumerator spinToWin()
+    {
+        whirlwindCollider.enabled = true;
+        yield return new WaitForSeconds(0.1f);
+        whirlwindCollider.enabled = false;
+        yield return new WaitForSeconds(0.1f);
+        whirlwindCollider.enabled = true;
+        yield return new WaitForSeconds(0.1f);
+        whirlwindCollider.enabled = false;
+    }
+
     protected new void Update()
     {
         base.Update();
@@ -67,33 +81,39 @@ public class Trainee : Player
         setup = weaponState.IsName("AttackSetup1") || weaponState.IsName("AttackSetup2");
         isAttacking = weaponState.IsTag("Damaging Attack");
         isBlocking = weaponState.IsName("Block");
-
+        
         damageCollider.enabled = isAttacking;
         blockCollider.enabled = isBlocking;
+
+        whirlwindAnimation = weaponState.IsName("Whirlwind");
+        whirlwindCollider.enabled = whirlwindAnimation;
 
         //Animation tracking
 
         attackAnimations = weaponState.IsTag("Attack") || weaponState.IsTag("Damaging Attack");
         walkAnimation = weaponState.IsName("Walk");
         idleAnimation = weaponState.IsName("Idle");
+        blockAnimation = weaponState.IsTag("Block");
+        
 
         swordAnimator.SetBool("attacking", attackAnimations);
         swordAnimator.SetBool("walking", walkAnimation);
         swordAnimator.SetBool("idling", idleAnimation);
-
+        swordAnimator.SetBool("blocking", blockAnimation);
+        swordAnimator.SetBool("whirlwinding", whirlwindAnimation);
 
         if (canAct)
         {
-            if (Input.GetMouseButton(0) & !isAttacking)
+            if (Input.GetMouseButton(0))
             {
-                swordAnimator.SetBool("blocking", true);
+                swordAnimator.SetBool("block", true);
             }
             else
             {
-                swordAnimator.SetBool("blocking", false);
+                swordAnimator.SetBool("block", false);
             }
 
-            if (Input.GetMouseButtonDown(1) & !isBlocking)
+            if (Input.GetMouseButtonDown(1) & !isBlocking &! swordAnimator.GetBool("attack"))
             {
                 if ((isAttacking || setup) && actionQueue.Count < 1)
                 {
@@ -110,26 +130,42 @@ public class Trainee : Player
                 }
             }
 
-            if(Input.GetKeyDown(KeyCode.Q))
+            if(Input.GetKeyDown(KeyCode.Q) &! whirlwindAnimation &! attackAnimations && currentEnergy >= whirlwindCost)
             {
-                //SPIN TO WIN BAY BEE
+                swordAnimator.SetBool("whirlwind", true);
+                currentEnergy -= whirlwindCost;
+                regenEnergy = false;
+                timeSinceEnergyUsed = 0;
             }
         }
         else if (isBlocking)
         {
-            swordAnimator.SetBool("blocking", false);
-            isBlocking = false;
+            swordAnimator.SetBool("block", false);
         }
+
+        if (whirlwindAnimation & !overrideMovespeed)
+        {
+            overrideMovespeed = true;
+            moveSpeedMultiplier = 0.5f;
+        }
+        else if (!whirlwindAnimation && overrideMovespeed)
+            overrideMovespeed = false;
 
         if (vel.magnitude > 0)
         {
             swordAnimator.SetBool("walk", true);
             swordAnimator.SetBool("idle", false);
+
+            if (Input.GetKey(KeyCode.LeftShift) && canAct)
+                swordAnimator.SetFloat("moveSpeed", 2);
+            else
+                swordAnimator.SetFloat("moveSpeed", 1);
         }
         else
         {
             swordAnimator.SetBool("idle", true);
             swordAnimator.SetBool("walk", false);
+            swordAnimator.SetFloat("moveSpeed", 1);
         }
     }
 }

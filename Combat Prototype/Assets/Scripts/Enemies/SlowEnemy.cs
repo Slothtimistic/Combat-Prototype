@@ -6,30 +6,27 @@ public class SlowEnemy : PrototypeEnemy
 
     public Animator slowAnimator;
     public BoxCollider weaponCollider;
-    public SpriteRenderer healthBar, healthBackground;
+
 
     Vector3 startPos;
 
-    Vector3 _3health = new Vector3(1, 0.1f, 1), _2health = new Vector3(0.66f, 0.1f, 1), _1health = new Vector3(0.33f, 0.1f, 1);
 
-    float attackRange = 2;
+    float attackRange = 2, v;
     bool idle, setup, attacking, recovering, stunned;
 
-    protected new void Start()
+    protected new void Update()
     {
-        base.Start();
-        health = 3;
-    }
+        base.Update();
 
-    private void Update()
-    {
         AnimatorStateInfo currentAnimation = slowAnimator.GetCurrentAnimatorStateInfo(0);
 
         idle = currentAnimation.IsName("Idle");
+        setup = currentAnimation.IsName("SwingSetup");
         attacking = currentAnimation.IsName("Swing");
         recovering = currentAnimation.IsName("SwingRecovery");
 
-        weaponCollider.enabled = attacking;
+        if (currentHealth > 0)
+            weaponCollider.enabled = attacking;
 
         float distFromPlayer = Vector3.Distance(transform.position, playerObject.transform.position);
 
@@ -39,7 +36,7 @@ public class SlowEnemy : PrototypeEnemy
         if (distFromPlayer <= attackRange)
             currentState = enemyState.attacking;
 
-        if(agent.isActiveAndEnabled)
+        if (agent.isActiveAndEnabled)
         {
             if (distFromPlayer < visionRadius && currentState == enemyState.moving)
             {
@@ -47,7 +44,7 @@ public class SlowEnemy : PrototypeEnemy
                 agent.destination = playerObject.transform.position;
             }
 
-            if (currentState == enemyState.attacking &! agent.isStopped)
+            if (currentState == enemyState.attacking & !agent.isStopped)
             {
                 resetAnimator();
                 slowAnimator.SetBool("attack", true);
@@ -56,25 +53,14 @@ public class SlowEnemy : PrototypeEnemy
             }
         }
 
-        if(health == 3)
+        if (setup)
         {
-            //healthBar.transform.localScale = _3health;
-            healthBar.enabled = false;
-            healthBackground.enabled = false;
+            Quaternion targetRotation = Quaternion.LookRotation(playerObject.transform.position - transform.position);
+            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation.eulerAngles.y, ref v, 0.1f), 0);
         }
-        else if (health == 2)
-        {
-            healthBar.transform.localScale = _2health;
-            healthBar.enabled = true;
-            healthBackground.enabled = true;
-        }
-        else if (health == 1)
-        {
-            healthBar.transform.localScale = _1health;
-            healthBar.enabled = true;
-            healthBackground.enabled = true;
-        }
-       
+
+
+
     }
 
     public void Reasses()
@@ -102,7 +88,7 @@ public class SlowEnemy : PrototypeEnemy
     {
         foreach (AnimatorControllerParameter param in slowAnimator.parameters)
         {
-            if(param.type == AnimatorControllerParameterType.Bool)
+            if (param.type == AnimatorControllerParameterType.Bool)
                 slowAnimator.SetBool(param.name, false);
         }
     }
@@ -127,8 +113,8 @@ public class SlowEnemy : PrototypeEnemy
     protected override void die()
     {
         base.die();
-        healthBar.enabled = false;
-        healthBackground.enabled = false;
+        if (agent.isActiveAndEnabled)
+            agent.isStopped = true;
         resetAnimator();
         slowAnimator.SetBool("dead", true);
     }

@@ -42,8 +42,8 @@ MonoBehaviour:
   ambientOcclusion:
     m_Enabled: 1
     m_Settings:
-      intensity: 0.3
-      radius: 0.3
+      intensity: 0.5
+      radius: 0.1
       sampleCount: 16
       downsampling: 1
       forceForwardCompatibility: 0
@@ -69,17 +69,17 @@ MonoBehaviour:
       screenEdgeMask:
         intensity: 0.03
   depthOfField:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
-      focusDistance: 10
+      focusDistance: 4
       aperture: 5.6
       focalLength: 50
       useCameraFov: 0
       kernelSize: 1
   motionBlur:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
-      shutterAngle: 270
+      shutterAngle: 80
       sampleCount: 10
       frameBlending: 0
   eyeAdaptation:
@@ -100,7 +100,7 @@ MonoBehaviour:
     m_Enabled: 0
     m_Settings:
       bloom:
-        intensity: 0.05
+        intensity: 0.5
         threshold: 1.1
         softKnee: 0.5
         radius: 4
@@ -121,7 +121,7 @@ MonoBehaviour:
         neutralWhiteClip: 10
       basic:
         postExposure: 1
-        temperature: 4
+        temperature: 2
         tint: 0
         hueShift: 0
         saturation: 1
@@ -138,9 +138,9 @@ MonoBehaviour:
           power: {r: 1, g: 1, b: 1, a: 0}
           offset: {r: 1, g: 1, b: 1, a: 0}
         linear:
-          lift: {r: 0, g: 0, b: 0, a: 0}
-          gamma: {r: 0, g: 0, b: 0, a: 0}
-          gain: {r: 0, g: 0, b: 0, a: 0}
+          lift: {r: 1, g: 1, b: 1, a: 0}
+          gamma: {r: 1, g: 1, b: 1, a: 0}
+          gain: {r: 1, g: 1, b: 1, a: 0}
       curves:
         master:
           curve:
@@ -182,7 +182,7 @@ MonoBehaviour:
               tangentMode: 0
             m_PreInfinity: 2
             m_PostInfinity: 2
-            m_RotationOrder: 4
+            m_RotationOrder: 0
           m_Loop: 0
           m_ZeroValue: 0
           m_Range: 1
@@ -204,7 +204,7 @@ MonoBehaviour:
               tangentMode: 0
             m_PreInfinity: 2
             m_PostInfinity: 2
-            m_RotationOrder: 4
+            m_RotationOrder: 0
           m_Loop: 0
           m_ZeroValue: 0
           m_Range: 1
@@ -226,7 +226,7 @@ MonoBehaviour:
               tangentMode: 0
             m_PreInfinity: 2
             m_PostInfinity: 2
-            m_RotationOrder: 4
+            m_RotationOrder: 0
           m_Loop: 0
           m_ZeroValue: 0
           m_Range: 1
@@ -273,8 +273,8 @@ MonoBehaviour:
         e_CurrentEditingCurve: 0
         e_CurveY: 1
         e_CurveR: 0
-        e_CurveG: 0
-        e_CurveB: 0
+        e_CurveG: 1
+        e_CurveB: 1
   userLut:
     m_Enabled: 0
     m_Settings:
@@ -289,8 +289,8 @@ MonoBehaviour:
     m_Enabled: 0
     m_Settings:
       colored: 1
-      intensity: 0.5
-      size: 1
+      intensity: 0.99
+      size: 1.31
       luminanceContribution: 0.8
   vignette:
     m_Enabled: 1
@@ -298,7 +298,7 @@ MonoBehaviour:
       mode: 0
       color: {r: 0, g: 0, b: 0, a: 1}
       center: {x: 0.5, y: 0.5}
-      intensity: 0.25
+      intensity: 0.3
       smoothness: 0.2
       roundness: 1
       mask: {fileID: 0}

@@ -36,8 +36,6 @@ public class UIManager : MonoBehaviour
                 Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
             }
-
-            Debug.Log(e);
         };
 
         Player.OnUIChange += UpdateUI;

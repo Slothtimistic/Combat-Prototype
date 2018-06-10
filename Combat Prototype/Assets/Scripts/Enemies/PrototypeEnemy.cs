@@ -11,32 +11,57 @@ public class PrototypeEnemy : Enemy {
     //When enemy is close enough to the player, attack the player
 
     public GameObject playerObject, weaponObject;
+    public BoxCollider weaponColliderToEnable;
+    public GameObject healthBars, spriteMask;
+    public SpriteRenderer healthBar, healthBackground;
 
-    public float visionRadius;
+    public float visionRadius, maxHealth;
     public bool hasWeapon;
 
     protected NavMeshAgent agent;
     protected Rigidbody enemyBody;
 
+    protected float currentHealth;
+
     protected void Start()
     {
         playerObject = Player.thisPlayer.gameObject;
-
-        health = 1;
         agent = GetComponent<NavMeshAgent>();
+
+        currentHealth = maxHealth;
+
+    }
+
+    protected void Update()
+    {
+        if ((currentHealth == maxHealth && healthBars.activeSelf) || (currentHealth == 0 && healthBars.activeSelf))
+        {
+            healthBars.SetActive(false);
+        }
+        else if (currentHealth < maxHealth &! healthBars.activeSelf && currentHealth != 0)
+        {
+            healthBars.SetActive(true);
+        }
+
+        if(currentHealth < maxHealth)
+        {
+            //healthBar.transform.localScale = new Vector3(currentHealth / maxHealth, 0.1f, 1);
+            spriteMask.transform.localPosition = new Vector3(currentHealth / maxHealth, 1.3f, 0);
+        }
     }
 
     public override void takeDamage(int d)
     {
-        health -= d;
+        currentHealth -= d;
 
-        if (health <= 0)
+        if (currentHealth <= 0)
             die();
-        
     }
 
     protected override void die()
     {
+        healthBars.SetActive(false);
+
         agent.enabled = false;
         enemyBody = gameObject.AddComponent<Rigidbody>();
 
@@ -51,7 +76,9 @@ public class PrototypeEnemy : Enemy {
         {
             forceVect = (weaponObject.transform.position - transform.position) * 5;
             forceVect.y = 5;
+            weaponObject.tag = "Untagged";
             weaponObject.transform.parent = null;
+            weaponColliderToEnable.enabled = true;
             weaponObject.GetComponent<Animator>().enabled = false;
             Rigidbody weaponBody = weaponObject.GetComponent<Rigidbody>();
             weaponBody.useGravity = true;
@@ -63,7 +90,7 @@ public class PrototypeEnemy : Enemy {
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "weapon" && health > 0)
+        if (other.gameObject.tag == "weapon" && currentHealth > 0)
         {
             takeDamage(1);
         }

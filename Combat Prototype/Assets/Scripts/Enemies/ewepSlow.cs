@@ -21,6 +21,7 @@ public class ewepSlow : MonoBehaviour
                 if (Player.thisPlayer.getBlocking())
                 {
                     enemyScript.gotBlocked();
+                    Player.thisPlayer.block(1);
                 }
                 else
                 {

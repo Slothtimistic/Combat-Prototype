@@ -44,3 +44,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Health
+    uniqueID: 2244350239
+    locked: 0

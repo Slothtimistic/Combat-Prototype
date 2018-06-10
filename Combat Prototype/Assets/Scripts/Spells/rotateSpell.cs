@@ -13,6 +13,8 @@ public class rotateSpell : MonoBehaviour
 
     Vector3 toPos = Vector3.zero;
 
+    private bool followPlayer = true;
+
     public void placeObject(Vector3 to)
     {
         transform.LookAt(toPos);
@@ -47,7 +49,14 @@ public class rotateSpell : MonoBehaviour
 
     void FixedUpdate()
     {
-        transform.LookAt(Player.thisPlayer.transform);
+        if (Vector3.Distance(Player.thisPlayer.transform.position, transform.position) < 3)
+        {
+            followPlayer = false;
+        }
+
+        if (followPlayer)
+            transform.LookAt(Player.thisPlayer.transform);
+
         forwardSpell.transform.Rotate(transform.InverseTransformDirection(Vector3.forward * rotationSpeed));
         backwardSpel.transform.Rotate(transform.InverseTransformDirection(-Vector3.forward * rotationSpeed));
 

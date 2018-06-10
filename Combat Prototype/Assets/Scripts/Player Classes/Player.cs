@@ -29,9 +29,15 @@ public class Player : MonoBehaviour
 
     protected List<int> actionQueue = new List<int>();
 
+    protected Dictionary<string, int> experienceDictionary = new Dictionary<string, int>()
+    {
+        { "level_one", 30 },
+        { "level_two", 50 }
+    };
+
     protected Vector3 inputs, vel, damagedVelocity, deadVelocity;
-    protected float v, distToGround, moveSpeedMultiplier, timeSinceEnergyUsed;
-    protected bool isBlocking, setup, isAttacking, canAct = true, regenEnergy = true, isDamaged, isDead;
+    protected float v, distToGround, moveSpeedMultiplier, turnTime, timeSinceEnergyUsed;
+    protected bool isBlocking, setup, isAttacking, canAct = true, regenEnergy = true, isDamaged, isDead, hasJumped, overrideMovespeed;
 
     protected float level = 1, currentExp = 0, currentHealth = 5, maxHealth = 5, currentEnergy = 200, maxEnergy = 200, attackCost = 50;
 
@@ -69,15 +75,27 @@ public class Player : MonoBehaviour
 
         bool isSprinting = Input.GetKey(KeyCode.LeftShift) && canAct;
 
-        if (isBlocking)
-            moveSpeedMultiplier = 0.5f;
-        else if (isSprinting)
-            moveSpeedMultiplier = 1.5f;
-        else
-            moveSpeedMultiplier = 1;
+        if (!overrideMovespeed)
+        {
+            if (isBlocking)
+            {
+                moveSpeedMultiplier = 0.5f;
+                turnTime = 0.3f;
+            }
+            else if (isSprinting)
+            {
+                moveSpeedMultiplier = 1.5f;
+                turnTime = 0.1f;
+            }
+            else
+            {
+                moveSpeedMultiplier = 1;
+                turnTime = 0.1f;
+            }
+        }
 
-        if (!isBlocking & !isDead)
-            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y, camObject.transform.eulerAngles.y, ref v, 0.1f), 0);
+        if (!isDead)
+            transform.eulerAngles = new Vector3(0, Mathf.SmoothDampAngle(transform.eulerAngles.y, camObject.transform.eulerAngles.y, ref v, turnTime), 0);
         else if (!isDead)
             transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
 
@@ -96,10 +114,15 @@ public class Player : MonoBehaviour
 
         vel += transform.right * inputs.z * 4.5f;
 
-        if (inputs.y > 0 && checkGround)
+        if (inputs.y > 0 && checkGround &! hasJumped)
             vel.y = 15f;
         else if (!checkGround & !isDead)
             vel.y = playerController.velocity.y - 0.75f;
+
+        if (inputs.y > 0)
+            hasJumped = true;
+        else
+            hasJumped = false;
 
         vel.x *= moveSpeedMultiplier;
         vel.z *= moveSpeedMultiplier;
@@ -200,6 +223,14 @@ public class Player : MonoBehaviour
         return isBlocking;
     }
 
+    public void block(int damage)
+    {
+        currentEnergy = Mathf.Clamp(currentEnergy - (50 * damage), 0, maxEnergy);
+
+        if (currentEnergy == 0)
+            canAct = false;
+    }
+
     private bool isGrounded()
     {
         if (playerController.isGrounded)
@@ -208,7 +239,7 @@ public class Player : MonoBehaviour
         Vector3 bottom = playerController.transform.position - new Vector3(0, playerController.height / 2, 0);
 
         RaycastHit hit;
-        if (Physics.Raycast(bottom, new Vector3(0, -1, 0), out hit, 0.25f)) // was 0.2
+        if (Physics.Raycast(bottom, new Vector3(0, -1, 0), out hit, 0.3f)) // was 0.25f
         {
             playerController.Move(new Vector3(0, -hit.distance, 0));
             return true;
